@@ -13,7 +13,7 @@ Table users {
  /** 
  * General 
  */
-enum alignment {
+Enum alignment {
   lawful_good
   neutral_good
   chaotic_good
@@ -90,7 +90,7 @@ Table characters_equipment {
 
 Table characters_currency {
   character_id UUID [pk, ref: > characters.id]
-  currency currency [pk, not null]
+  currency text [pk, ref: > currency.name]
   amount smallint
 }
 
@@ -332,6 +332,7 @@ Table resources {
   name text
   level tinyint
   die_type tinyint
+  content_pack_id UUID [ref: > content_packs.id]
 }
 
 Table class_resources {
@@ -503,11 +504,11 @@ Table fighting_style_feats {
 /** 
  * Equipment 
  */
-Enum currency {
-  cp
-  sp
-  gp
-  pp
+Table currency {
+  name text [pk]
+  conversion_numerator smallint [not null]
+  conversion_denominator smallint [not null]
+  content_pack_id UUID [ref: > content_packs.id]
 }
 
 Table equipment {
@@ -516,7 +517,7 @@ Table equipment {
   description text
   weight smallint [not null]
   cost_value smallint
-  cost_currency currency
+  cost_currency text [ref: > currency.name]
   image text
   content_pack_id UUID [ref: > content_packs.id]
 }
@@ -633,7 +634,7 @@ Table poisons {
   damage string
 }
 
-Enum tools_type {
+Enum tool_type {
   artisan_tool
   gaming_set
   musical_instrument	
@@ -642,7 +643,7 @@ Enum tools_type {
 
 Table tools {
   id UUID [pk, ref: - equipment.id]
-  type tools_type [not null]
+  type tool_type [not null]
   ability ability_score
 }
 
