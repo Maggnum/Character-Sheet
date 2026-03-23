@@ -29,13 +29,14 @@ Table characters_classes {
   character_id UUID [pk, ref: > characters.id]
   class_id UUID [pk, ref: > classes.id]
   subclass_id UUID [ref: > subclasses.id]
-  level tinyint [not null]
+  level smallint [not null]
+  is_multiclass bool [not null]
   spellcasting_abilty ability_score
-  spell_save_dc tinyint
-  spell_attack_bonus tinyint
+  spell_save_dc smallint
+  spell_attack_bonus smallint
 }
 
-Table charcters_descriptions {
+Table characters_descriptions {
   character_id UUID [pk, ref: > characters.id]
   title tinytext [pk]
   description text
@@ -54,16 +55,23 @@ Table characters_spells {
 
 Table characters_spell_slots {
   character_id UUID [pk, ref: > characters.id]
-  level tinyint [pk]
-  total tinyint [not null]
-  used tinyint [not null]
+  level smallint [pk]
+  total smallint [not null]
+  used smallint [not null]
 }
 
 Table characters_resources {
   character_id UUID [pk, ref: > characters.id]
-  resource_id text [pk, ref: > resources.id]
-  total tinyint [not null]
-  used tinyint [not null]
+  resource_id UUID [pk, ref: > resources.id]
+  total smallint
+  used smallint
+}
+
+Table characters_features {
+  character_id UUID [pk, ref: > characters.id]
+  feature_id UUID [pk, ref: > features.id]
+  total smallint
+  used smallint
 }
 
 /** 
@@ -85,13 +93,14 @@ Table characters_fighting_style_feats {
 Table characters_equipment {
   character_id UUID [pk, ref: > characters.id]
   equipment_id UUID [pk, ref: > equipment.id]
+  amount smallint [not null]
   note text
 }
 
 Table characters_currency {
   character_id UUID [pk, ref: > characters.id]
-  currency text [pk, ref: > currency.name]
-  amount smallint
+  currency_id UUID [pk, ref: > currency.id]
+  amount smallint [not null]
 }
 
 /** 
@@ -99,7 +108,7 @@ Table characters_currency {
  */
 Table characters_languages {
   character_id UUID [pk, ref: > characters.id]
-  language UUID [pk, ref: > languages.name]
+  language_id UUID [pk, ref: > languages.id]
 }
 
 Table charcters_skills {
@@ -107,7 +116,7 @@ Table charcters_skills {
   skill_id UUID [pk, ref: > skills.id]
   proficiency bool [not null, default: false]
   expertise bool [not null, default: false]
-  score tinyint
+  score smallint
   note text
 }
 
@@ -129,25 +138,25 @@ Table characters_tool_proficiencies {
 /** 
  * Combat 
  */
-Table charcters_saving_throws {
+Table characters_saving_throws {
   character_id UUID [pk, ref: > characters.id]
   ability_score ability_score [pk]
   proficiency bool [not null, default: false]
-  score tinyint
+  score smallint
   note text
 }
 
-Table charcters_hit_dice {
+Table characters_hit_dice {
   character_id UUID [pk, ref: > characters.id]
-  hit_die_amount_total tinyint
-  hit_die_amount_current tinyint
-  hit_die_type tinyint
+  hit_die_type smallint [pk]
+  hit_die_amount_total smallint
+  hit_die_amount_current smallint
 } 
 
-Table charcters_actions {
+Table characters_actions {
   character_id UUID [pk, ref: > characters.id]
   name text [pk]
-  attack_bonus tinyint
+  attack_bonus smallint
   damage text
   interval text
   note text
@@ -170,30 +179,30 @@ Table characters {
    *  Misc
    */
   origin_feat_id UUID [ref: > origin_feats.id]
-  inspiration tinyint
-  proficienct_bonus tinyint [not null]
+  inspiration smallint
+  proficiency_bonus smallint [not null]
 
   /**
    *  Combat
    */
-  speed tinyint [not null ]
-  armor_class tinyint [not null]
-  initiative tinyint [not null]
+  speed smallint [not null ]
+  armor_class smallint [not null]
+  initiative smallint [not null]
   max_hit_points smallint [not null]
   current_hit_points smallint [not null]
   temporary_hit_points smallint [not null]
-  successes_death_saves tinyint
-  failures_death_saves tinyint
+  successes_death_saves smallint
+  failures_death_saves smallint
 
   /**
    *  Ability scores
    */
-  strength tinyint [not null]
-  dexterity tinyint [not null]
-  constitution tinyint [not null]
-  intelligence tinyint [not null]
-  wisdom tinyint [not null]
-  charisma tinyint [not null]
+  strength smallint [not null]
+  dexterity smallint [not null]
+  constitution smallint [not null]
+  intelligence smallint [not null]
+  wisdom smallint [not null]
+  charisma smallint [not null]
 
   /**
    *  Description
@@ -246,11 +255,26 @@ Table content_packs {
 /** 
  * General 
  */
+Enum recharge_period {
+  short_rest
+  long_rest
+}
+
 Table features {
   id UUID [pk]
   name text [not null]
-  content_pack_id UUID [ref: > content_packs.id]
-  prerequisite text
+  recharge_on recharge_period
+  content_pack_id UUID [not null, ref: > content_packs.id]
+  description text
+}
+
+Table resources {
+  id UUID [pk]
+  name text
+  level smallint
+  die_type smallint
+  recharge_on recharge_period [not null]
+  content_pack_id UUID [not null, ref: > content_packs.id]
   description text
 }
 
@@ -267,11 +291,13 @@ Table skills {
   id UUID [pk]
   name tinytext [not null]
   ability_score ability_score [not null]
+  description text
 }
 
 Table languages {
-  name text [pk]
-  content_pack_id UUID [ref: > content_packs.id]
+  id UUID [pk]
+  name text [not null]
+  content_pack_id UUID [not null, ref: > content_packs.id]
   description text
 }
 
@@ -287,73 +313,74 @@ Table class_saving_throw_proficiencies {
 Table class_skill_proficiencies {
   class_id UUID [pk, ref: > classes.id]
   skill_id UUID [pk, ref: > skills.id]
-}
-
-Table class_equipment_kit {
-  class_id UUID [pk, ref: > classes.id]
-  equipment_kit_id UUID [pk, ref: > equipment.id]
-}
-
-Table classes_features {
-  class_id UUID [pk, ref: > classes.id]
-  feature_id UUID [pk, ref: > features.id]
-  level tinyint [not null]
+  acquired_when_multiclass bool [not null]
 }
 
 Table class_weapon_proficiencies {
   class_id UUID [pk, ref: - classes.id]
   weapon_category weapon_category [pk]
+  acquired_when_multiclass bool [not null]
 }
 
 Table class_armor_training {
   class_id UUID [pk, ref: > classes.id]
   armor_type armor_type [pk]
+  acquired_when_multiclass bool [not null]
 }
 
 Table class_tool_proficiencies {
   class_id UUID [pk, ref: - classes.id]
   tool_id UUID [pk, ref: - tools.id]
+  acquired_when_multiclass bool [not null]
+  is_optional bool [not null]
 }
 
-Table class_tool_optional_proficiencies {
-  class_id UUID [pk, ref: - classes.id]
-  tool_id UUID [pk, ref: - tools.id]
+Table classes_spells {
+  spell_id UUID [pk, ref: > spells.id]
+  class_id UUID [pk, ref: > classes.id]
 }
 
 Table class_spells_level {
   class_id uuid [pk, ref: > classes.id]
-  level tinyint [pk]
-  cantrips tinyint
-  prepared_spells tinyint
-}
-
-Table resources {
-  id UUID [pk]
-  name text
-  level tinyint
-  die_type tinyint
-  content_pack_id UUID [ref: > content_packs.id]
+  level smallint [pk]
+  cantrips smallint
+  prepared_spells smallint
 }
 
 Table class_resources {
   class_id uuid [pk, ref: > classes.id]
   resource_id text [pk, ref: > resources.id]
-  level tinyint [pk]
-  amount tinyint [not null]
+  level smallint [pk]
+  amount smallint
+}
+
+Table classes_features {
+  class_id UUID [pk, ref: > classes.id]
+  feature_id UUID [pk, ref: > features.id]
+  level smallint [not null]
 }
 
 Table classes {
   id UUID [pk]
   name text [not null]
-  is_multiclass_version bool [not null]
   primary_ability ability_score
-  hit_point_dice tinyint [not null]
-  skill_proficiencies_amount tinyint [not null]
-  tool_proficiencies_amount tinyint [not null]
+  hit_point_dice smallint [not null]
+  skill_proficiencies_amount smallint [not null]
+  tool_proficiencies_amount smallint [not null]
   starting_gold smallint [not null]
-  spell_slot_multiplier tinyint [default: 0]
-  content_pack_id UUID [ref: > content_packs.id]
+  spell_slot_multiplier smallint [not null]
+  equipment_kit_id UUID [not null, ref: > equipment.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
   description text
+}
+
+/** 
+ * Multiclass 
+ */
+Table multiclass {
+  id UUID [pk, ref: - classes.id]
+  skill_proficiencies_amount smallint [not null]
+  tool_proficiencies_amount smallint [not null]
 }
 
 /** 
@@ -362,14 +389,20 @@ Table classes {
 Table subclasses_features {
   subclass_id UUID [pk, ref: > subclasses.id]
   feature_id UUID [pk, ref: > features.id]
-  level tinyint [not null]
+  level smallint [not null]
+}
+
+Table subclasses_resources {
+  subclass_id UUID [pk, ref: > subclasses.id]
+  resource_id text [pk, ref: > resources.id]
+  level smallint [pk]
+  amount smallint
 }
 
 Table subclasses {
-  id UUID [pk]
+  id UUID [pk, ref: - classes.id]
   name text [not null]
-  class_id UUID [not null, ref: - classes.id]
-  content_pack_id UUID [ref: > content_packs.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
   description text
 }
 
@@ -387,15 +420,10 @@ Enum magic_schools {
   illusion
 }
 
-Table classes_spells {
-  spell_id UUID [pk, ref: > spells.id]
-  class_id UUID [pk, ref: > classes.id]
-}
-
 Table spells {
   id UUID [PK]
   name text [not null]
-  level tinyint [not null]
+  level smallint [not null]
   school magic_schools [not null]
   casting_time text [not null]
   range text [not null]
@@ -404,8 +432,12 @@ Table spells {
   material bool [default: false]
   material_description text
   duration text [not null]
-  content_pack_id UUID [ref: > content_packs.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
   description longtext [not null]
+  
+  checks {
+    `level >= 0 AND level <= 9` [name: 'spell_level_range']
+  }
 }
 
 
@@ -422,17 +454,14 @@ Table background_skills {
   skill_id UUID [pk, ref: > skills.id]
 }
 
-Table background_equipment_kit {
-  background_id UUID [pk, ref: > backgrounds.id]
-  equipment_kit_id UUID [pk, ref: > equipment.id]
-}
-
 Table backgrounds {
   id UUID [pk]
   name text [not null]
   feat_id UUID [ref: - origin_feats.id]
   tool_id UUID [ref: - tools.id]
-  content_pack_id UUID [ref: > content_packs.id]
+  equipment_kit_id UUID [ref: - equipment_kits.id]
+  description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 /** 
@@ -459,22 +488,23 @@ Table species {
   creature_type creature_type [not null]
   size creature_size [not null]
   speed text [not null]
-  content_pack_id UUID [ref: > content_packs.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
+
 /** 
- * Feats 
+ * Feats
  */
 Table origin_feats_features {
   origin_feat_id UUID [pk, ref: > origin_feats.id]
   feature_id UUID [pk, ref: > features.id]
-  content_pack_id UUID [ref: > content_packs.id]
 }
 
 Table origin_feats {
   id UUID [PK]
   name text [not null]
-  content_pack_id UUID [ref: > content_packs.id]
+  description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table general_feats_features {
@@ -491,39 +521,53 @@ Table general_feats {
   id UUID [PK]
   name text [not null]
   prerequisite text
-  content_pack_id UUID [ref: > content_packs.id]
+  description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
+}
+
+Table fighting_style_feats_features {
+  fighting_style_feat_id UUID [pk, ref: > fighting_style_feats.id]
+  feature_id UUID [pk, ref: > features.id]
 }
 
 Table fighting_style_feats {
   id UUID [PK]
   name text [not null]
-  feature_id UUID [ref: - features.id]
-  content_pack_id UUID [ref: > content_packs.id]
+  description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 /** 
  * Equipment 
  */
 Table currency {
-  name text [pk]
+  id UUID [PK]
+  name text [not null]
   conversion_numerator smallint [not null]
   conversion_denominator smallint [not null]
-  content_pack_id UUID [ref: > content_packs.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table equipment {
   id UUID [pk]
   name text [not null]
   description text
-  weight smallint [not null]
+  weight smallint
   cost_value smallint
-  cost_currency text [ref: > currency.name]
+  cost_currency_id UUID [ref: > currency.id]
+  is_for_sale bool [not null]
   image text
-  content_pack_id UUID [ref: > content_packs.id]
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table equipment_kits {
   id UUID [pk, ref: - equipment.id]
+  coin_value smallint
+  currency_id UUID [ref: > currency.id]
+}
+
+Table equipment_kits_equipment {
+  kit_id UUID [pk, ref: > equipment_kits.id]
   equipment_id UUID [pk, ref: > equipment.id]
 }
 
@@ -540,9 +584,9 @@ Enum armor_type {
 Table armor {
   id UUID [pk, ref: - equipment.id]
   type armor_type [not null]
-  base_armor_class tinyint [not null]
+  base_armor_class smallint [not null]
   add_dexterity bool [not null, default: true]
-  strength_nedded tinyint [default: null]
+  strength_nedded smallint [default: null]
   disadvantage_on_stealth bool [not null, default: false]
   don_time text [not null]
   doff_time text [not null]
@@ -581,12 +625,14 @@ Table weapon_masteries {
   id UUID [pk]
   name text [not null]
   description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table weapon_properties {
   id UUID [pk]
   name text [not null]
   description text
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table weapon_weapon_properties {
@@ -598,8 +644,8 @@ Table weapons {
   id UUID [pk, ref: - equipment.id]
   category weapon_category [not null]
   type weapon_type [not null]
-  die_amount tinyint
-  die_type tinyint
+  die_amount smallint
+  die_type smallint
   damage_type damage_type
   mastery_id UUID [ref: - weapon_masteries.id]
 }
@@ -618,6 +664,7 @@ Table trinkets {
   id UUID [PK]
   name text [not null]
   description text [not null]
+  content_pack_id UUID [not null, ref: > content_packs.id]
 }
 
 Table poison_type {
@@ -630,8 +677,7 @@ Table poisons {
   id UUID [pk, ref: - equipment.id]
   type_id UUID [not null, ref: > poison_type.id]
   effect text [not null]
-  saving_throw_dc sma
-  damage string
+  saving_throw_dc smallint
 }
 
 Enum tool_type {
@@ -677,3 +723,5 @@ Table magic_items {
   require_attunement bool [default: false]
   add_base_cost bool [default: false]
 }
+
+
