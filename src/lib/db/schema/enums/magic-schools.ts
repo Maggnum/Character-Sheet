@@ -12,7 +12,7 @@ export const magicSchools = [
   "illusion",
 ] as const;
 
-export const magicSchoolDrizzleSchema = pgEnum("magic_school", magicSchools);
-export const magicSchoolZodSchema = z.enum(magicSchools);
+export const magicSchoolEnum = pgEnum("magic_school", magicSchools);
+export const magicSchoolSchema = z.enum(magicSchools);
 
 export type MagicSchool = (typeof magicSchools)[number];

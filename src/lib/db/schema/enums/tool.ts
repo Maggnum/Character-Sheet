@@ -8,7 +8,7 @@ export const toolTypes = [
   "other",
 ] as const;
 
-export const toolTypeDrizzleSchema = pgEnum("tool_type", toolTypes);
-export const toolTypeZodSchema = z.enum(toolTypes);
+export const toolTypeEnum = pgEnum("tool_type", toolTypes);
+export const toolTypeSchema = z.enum(toolTypes);
 
 export type ToolType = (typeof toolTypes)[number];

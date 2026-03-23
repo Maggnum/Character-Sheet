@@ -10,7 +10,7 @@ export const abilityScores = [
   "charisma",
 ] as const;
 
-export const abilityScoreDrizzleSchema = pgEnum("ability-score", abilityScores);
-export const abilityScoreZodSchema = z.enum(abilityScores);
+export const abilityScoreEnum = pgEnum("ability_score", abilityScores);
+export const abilityScoreSchema = z.enum(abilityScores);
 
 export type AbilityScore = (typeof abilityScores)[number];

@@ -17,7 +17,7 @@ export const damageTypes = [
   "thunder",
 ] as const;
 
-export const damageTypeDrizzleSchema = pgEnum("damage_type", damageTypes);
-export const damageTypeZodSchema = z.enum(damageTypes);
+export const damageTypeEnum = pgEnum("damage_type", damageTypes);
+export const damageTypeSchema = z.enum(damageTypes);
 
 export type DamageType = (typeof damageTypes)[number];

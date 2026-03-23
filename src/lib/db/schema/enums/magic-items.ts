@@ -12,11 +12,8 @@ export const magicItemTypes = [
   "wand",
 ] as const;
 
-export const magicItemTypeDrizzleSchema = pgEnum(
-  "magic_item_type",
-  magicItemTypes,
-);
-export const magicItemTypeZodSchema = z.enum(magicItemTypes);
+export const magicItemTypeEnum = pgEnum("magic_item_type", magicItemTypes);
+export const magicItemTypeSchema = z.enum(magicItemTypes);
 
 export type MagicItemType = (typeof magicItemTypes)[number];
 
@@ -29,10 +26,7 @@ export const magicItemLevels = [
   "artifact",
 ] as const;
 
-export const magicItemLevelDrizzleSchema = pgEnum(
-  "magic_item_level",
-  magicItemTypes,
-);
-export const magicItemLevelZodSchema = z.enum(magicItemLevels);
+export const magicItemLevelEnum = pgEnum("magic_item_level", magicItemTypes);
+export const magicItemLevelSchema = z.enum(magicItemLevels);
 
 export type MagicItemLevel = (typeof magicItemLevels)[number];

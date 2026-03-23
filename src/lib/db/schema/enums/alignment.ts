@@ -13,7 +13,7 @@ export const alignments = [
   "chaotic_evil",
 ] as const;
 
-export const alignmentDrizzleSchema = pgEnum("alignment", alignments);
-export const alignmentZodSchema = z.enum(alignments);
+export const alignmentEnum = pgEnum("alignment", alignments);
+export const alignmentSchema = z.enum(alignments);
 
 export type Alignment = (typeof alignments)[number];
