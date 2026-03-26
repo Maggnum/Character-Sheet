@@ -16,3 +16,15 @@ export function hasMessage(data: unknown): data is { message: string } {
     typeof data.message === "string"
   );
 }
+
+export function parser(schema: ZodObject, object: unknown) {
+  const { success, data, error } = schema.safeParse(object);
+  if (success) return ok(data);
+  return err({
+    type: "ZodParsingError",
+    message: hasMessage(error)
+      ? error.message
+      : "Couldn't parse object to zod schema",
+    data: { error },
+  } satisfies ParsingError);
+}
